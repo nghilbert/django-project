@@ -86,6 +86,12 @@ DATABASES = {
 }
 
 
+# Custom user model
+# https://docs.djangoproject.com/en/6.1/topics/auth/customizing/#substituting-a-custom-user-model
+
+AUTH_USER_MODEL = "skill_matchmaker.User"
+
+
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
 

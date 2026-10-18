@@ -5,7 +5,7 @@ A skill exchange site built with Django.
 ## Requirements
 
 - **Git**: downloads the code and tracks changes. [Install here](https://git-scm.com/downloads).
-- **uv**: installs Python, the project's libraries, and runs commands. [Install here](https://docs.astral.sh/uv/getting-started/installation/), or:
+- **uv**: installs Python with the project dependencies and runs commands. [Install here](https://docs.astral.sh/uv/getting-started/installation/), or:
   - **Windows 11** (PowerShell): `winget install --id=astral-sh.uv -e`
   - **Linux**: your package manager (e.g. `sudo pacman -S uv`), or `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
@@ -34,6 +34,14 @@ Run these once in a terminal (PowerShell on Windows):
    ```sh
    uv run python manage.py migrate
    ```
+
+4. **Create your admin account:**
+
+   ```sh
+   uv run python manage.py createsuperuser
+   ```
+
+   Any email works, even a fake one like `admin@example.com`. Accounts made through the site's sign-up page will need a real `@ilstu.edu` email.
 
 ## VS Code (recommended)
 
@@ -69,10 +77,10 @@ Before starting a task, read [CONTRIBUTING.md](CONTRIBUTING.md). Tasks are on th
 | `skill_matchmaker/migrations/` | Auto-generated database changes. Don't edit by hand. |
 | `skill_matchmaker/admin.py` | Adds models to the admin site. |
 | `manage.py` | Runs Django commands. |
-| `pyproject.toml`, `uv.lock` | Libraries and their exact versions. Managed by uv. |
+| `pyproject.toml`, `uv.lock` | Project dependencies and their exact versions. Managed by uv. |
 | `.env.example` | Template for `.env`. |
 | `.env` | Your local configuration. Not committed. |
-| `.venv/` | Python and libraries. Created by `uv sync`. Not committed. |
+| `.venv/` | Python and the project dependencies. Created by `uv sync`. Not committed. |
 | `db.sqlite3` | Your local database. Not committed. |
 | `.vscode/` | Shared VS Code configuration. |
 | `CONTRIBUTING.md` | How we use branches and pull requests. |
