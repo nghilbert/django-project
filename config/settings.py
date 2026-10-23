@@ -90,6 +90,7 @@ DATABASES = {
 # https://docs.djangoproject.com/en/6.1/topics/auth/customizing/#substituting-a-custom-user-model
 
 AUTH_USER_MODEL = "skill_matchmaker.User"
+AUTHENTICATION_BACKENDS = ["django.contrib.auth.backends.AllowAllUsersModelBackend"]
 
 
 # Password validation
