@@ -1,0 +1,14 @@
+{% extends "skill_matchmaker/base.html" %}
+
+{% block title %}Log in | Skill Matchmaker{% endblock %}
+
+{% block content %}
+    <h1>Log in</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit">Log in</button>
+    </form>
+    {% url 'register' as register_url %}
+    <p><a href="{{ register_url|default:'/accounts/register/' }}">Sign up</a></p>
+{% endblock %}
