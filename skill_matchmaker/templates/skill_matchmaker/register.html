@@ -1,0 +1,14 @@
+{% extends "skill_matchmaker/base.html" %}
+
+{% block title %}Sign up | Skill Matchmaker{% endblock %}
+
+{% block content %}
+    <h1>Sign up</h1>
+    <p>Use your @ilstu.edu email to create an account.</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit">Sign up</button>
+    </form>
+    <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+{% endblock %}

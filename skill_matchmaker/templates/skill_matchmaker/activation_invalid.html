@@ -1,0 +1,17 @@
+{% extends "skill_matchmaker/base.html" %}
+
+{% block title %}Verify your account | Skill Matchmaker{% endblock %}
+
+{% block content %}
+    <h1>Verify your account</h1>
+    {% if invalid_link %}
+        <p>This verification link is invalid, expired, or already used.</p>
+    {% endif %}
+    <p>Enter your email to request another verification link.</p>
+    <form method="post" action="{% url 'resend_activation' %}">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit">Resend verification email</button>
+    </form>
+    <p><a href="{% url 'login' %}">Log in</a></p>
+{% endblock %}
