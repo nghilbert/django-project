@@ -7,6 +7,12 @@
         <title>{% block title %}Skill Matchmaker{% endblock %}</title>
     </head>
     <body>
+        <nav>
+            {% if user.is_authenticated %}
+                <a href="{% url 'account_settings' %}">Account</a>
+            {% endif %}
+        </nav>
+
         {% block content %}{% endblock %}
     </body>
 </html>

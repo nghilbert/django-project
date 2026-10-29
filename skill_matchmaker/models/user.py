@@ -32,6 +32,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
+    bio = models.TextField(blank=True)
+    profile_picture = models.ImageField(upload_to="profile_pictures/", blank=True)
     is_staff = models.BooleanField(default=False)  # Can log into /admin/
     is_active = models.BooleanField(default=True)  # Can log in
     date_joined = models.DateTimeField(default=timezone.now)

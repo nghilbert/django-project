@@ -10,7 +10,6 @@ from django.urls import resolve, reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
-from skill_matchmaker.forms.accounts import LoginForm
 from skill_matchmaker.models import User
 
 
@@ -57,8 +56,11 @@ class ActivationTests(TestCase):
         self.assertRedirects(self.client.get(urlsplit(link).path), reverse("login"))
         user.refresh_from_db()
         self.assertTrue(user.is_active)
-        form = LoginForm(data={"username": user.email, "password": self.password})
-        self.assertTrue(form.is_valid(), form.errors)
+        response = self.client.post(
+            reverse("login"), {"username": "NEWSTUDENT@ILSTU.EDU", "password": self.password}
+        )
+        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
     def test_valid_link_activates_without_logging_in(self):
         self.assertEqual(User.from_activation_link(self.uid, self.token), self.user)
