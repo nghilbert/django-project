@@ -1,10 +1,11 @@
 from django.contrib.auth.views import LoginView, PasswordChangeDoneView, PasswordChangeView
 from django.urls import path
-
+from .views.home import HomeView
 from .forms.accounts import LoginForm
 from .views import AccountSettingsView
 
 urlpatterns = [
+    path("", HomeView.as_view(), name="home"),
     path(
         "accounts/login/",
         LoginView.as_view(
