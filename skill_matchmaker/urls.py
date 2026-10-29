@@ -1,8 +1,14 @@
-from django.contrib.auth.views import LoginView, PasswordChangeDoneView, PasswordChangeView
+from django.contrib.auth.views import (
+    LoginView,
+    LogoutView,
+    PasswordChangeDoneView,
+    PasswordChangeView,
+)
 from django.urls import path
-from .views.home import HomeView
+
 from .forms.accounts import LoginForm
 from .views import AccountSettingsView
+from .views.home import HomeView
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
@@ -15,6 +21,7 @@ urlpatterns = [
         ),
         name="login",
     ),
+    path("accounts/logout/", LogoutView.as_view(), name="logout"),
     path(
         "accounts/settings/",
         AccountSettingsView.as_view(),

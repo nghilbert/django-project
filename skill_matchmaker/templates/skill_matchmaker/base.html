@@ -5,14 +5,155 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}Skill Matchmaker{% endblock %}</title>
+        <style>
+            body {
+                margin: 0;
+                background: #f4f6f8;
+                color: #17212b;
+                font-family: system-ui, sans-serif;
+            }
+
+            .site-header {
+                background: #17324d;
+                box-shadow: 0 2px 8px rgb(23 50 77 / 18%);
+                color: #fff;
+            }
+
+            .site-nav {
+                align-items: center;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1.25rem;
+                justify-content: space-between;
+                margin: 0 auto;
+                max-width: 72rem;
+                min-height: 4.5rem;
+                padding: 0 1.5rem;
+            }
+
+            .site-brand {
+                color: #fff;
+                font-size: 1.2rem;
+                font-weight: 700;
+                text-decoration: none;
+                white-space: nowrap;
+            }
+
+            .nav-actions {
+                align-items: center;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1.25rem;
+            }
+
+            .nav-actions a {
+                color: #e7eef5;
+                font-weight: 600;
+                text-decoration: none;
+            }
+
+            .nav-actions a:hover {
+                color: #fff;
+                text-decoration: underline;
+                text-underline-offset: 0.25rem;
+            }
+
+            .nav-user {
+                border-left: 1px solid #71869a;
+                color: #fff;
+                line-height: 1.35;
+                padding-left: 1.25rem;
+            }
+
+            .nav-user-label {
+                color: #c5d2de;
+                display: block;
+                font-size: 0.75rem;
+            }
+
+            .nav-actions form {
+                margin: 0;
+            }
+
+            .nav-actions button {
+                background: #fff;
+                border: 0;
+                border-radius: 0.4rem;
+                color: #17324d;
+                cursor: pointer;
+                font: inherit;
+                font-weight: 700;
+                padding: 0.6rem 0.9rem;
+            }
+
+            .nav-actions button:hover {
+                background: #e7eef5;
+            }
+
+            .nav-actions a:focus-visible,
+            .nav-actions button:focus-visible {
+                border-radius: 0.2rem;
+                outline: 3px solid #f6c453;
+                outline-offset: 3px;
+            }
+
+            .page-content {
+                margin: 0 auto;
+                max-width: 72rem;
+                padding: 2rem 1.5rem;
+            }
+
+            @media (max-width: 40rem) {
+                .site-nav {
+                    align-items: flex-start;
+                    flex-direction: column;
+                    justify-content: center;
+                    padding-bottom: 1rem;
+                    padding-top: 1rem;
+                }
+
+                .nav-actions {
+                    gap: 0.9rem;
+                }
+
+                .nav-user {
+                    flex-basis: 100%;
+                    border-left: 0;
+                    padding-left: 0;
+                }
+            }
+        </style>
     </head>
     <body>
-        <nav>
-            {% if user.is_authenticated %}
-                <a href="{% url 'account_settings' %}">Account</a>
-            {% endif %}
-        </nav>
+        <header class="site-header">
+            <nav class="site-nav" aria-label="Main navigation">
+                {% if user.is_authenticated %}
+                    <a class="site-brand" href="{% url 'home' %}">Skill Matchmaker</a>
+                    <div class="nav-actions">
+                        <a href="{% url 'home' %}">Home</a>
+                        <a href="{% url 'account_settings' %}">Account</a>
+                        <span class="nav-user">
+                            <span class="nav-user-label">Logged in as</span>
+                            {{ user.email }}
+                        </span>
+                        <form method="post" action="{% url 'logout' %}">
+                            {% csrf_token %}
+                            <button type="submit">Log out</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <span class="site-brand">Skill Matchmaker</span>
+                    <div class="nav-actions">
+                        <a href="{% url 'login' %}">Log in</a>
+                        {% url 'register' as register_url %}
+                        <a href="{{ register_url|default:'/accounts/register/' }}">Sign up</a>
+                    </div>
+                {% endif %}
+            </nav>
+        </header>
 
-        {% block content %}{% endblock %}
+        <main class="page-content">
+            {% block content %}{% endblock %}
+        </main>
     </body>
 </html>
