@@ -4,6 +4,7 @@
 
 {% block content %}
     <h1>Check your email</h1>
-    <p>We sent you a link to verify your account. Check your inbox and spam folder.</p>
+    <p>If your account needs verification, we sent you a link. Check your inbox and spam folder.</p>
+    <p><a href="{% url 'resend_activation' %}">Resend verification email</a></p>
     <p><a href="{% url 'login' %}">Log in</a></p>
 {% endblock %}

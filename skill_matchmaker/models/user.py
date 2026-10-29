@@ -1,7 +1,11 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 
 class UserManager(BaseUserManager):
@@ -50,3 +54,25 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def email_user(self, subject: str, message: str, from_email: str | None = None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+    def send_activation_email(self, request):
+        uid = urlsafe_base64_encode(force_bytes(self.pk))
+        token = default_token_generator.make_token(self)
+        link = request.build_absolute_uri(reverse("activate", args=[uid, token]))
+        self.email_user(
+            "Verify your Skill Matchmaker account",
+            f"Click this link to verify your account:\n\n{link}",
+        )
+
+    @classmethod
+    def from_activation_link(cls, uidb64, token):
+        try:
+            user_id = urlsafe_base64_decode(uidb64).decode()
+            user = cls.objects.get(pk=user_id)
+        except ValueError, TypeError, OverflowError, cls.DoesNotExist:
+            return None
+
+        # Activating an account doesn't invalidate Django's password-reset token.
+        if user.is_active or not default_token_generator.check_token(user, token):
+            return None
+        return user
