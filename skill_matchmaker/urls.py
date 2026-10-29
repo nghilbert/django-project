@@ -2,7 +2,7 @@ from django.contrib.auth.views import LoginView, PasswordChangeDoneView, Passwor
 from django.urls import path
 
 from .forms.accounts import LoginForm
-from .views import AccountSettingsView
+from .views import AccountSettingsView, RemoveSkillView, SkillsView
 
 urlpatterns = [
     path(
@@ -28,5 +28,15 @@ urlpatterns = [
         "accounts/password/done/",
         PasswordChangeDoneView.as_view(template_name="skill_matchmaker/password_change_done.html"),
         name="password_change_done",
+    ),
+    path(
+        "accounts/skills/",
+        SkillsView.as_view(),
+        name="skills",
+    ),
+    path(
+        "accounts/skills/<int:pk>/remove/",
+        RemoveSkillView.as_view(),
+        name="remove_skill",
     ),
 ]

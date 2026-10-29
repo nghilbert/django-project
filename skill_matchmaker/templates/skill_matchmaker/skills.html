@@ -1,0 +1,26 @@
+{% extends "skill_matchmaker/base.html" %}
+
+{% block title %}Skills | Skill Matchmaker{% endblock %}
+
+{% block content %}
+    <h1>Skills</h1>
+
+    {% for user_skill in user_skills %}
+        <p>{{ user_skill.skill }}: {{ user_skill.get_skill_type_display }}, {{ user_skill.get_level_display }}</p>
+        <form method="post" action="{% url 'remove_skill' user_skill.pk %}">
+            {% csrf_token %}
+            <button type="submit">Remove</button>
+        </form>
+    {% empty %}
+        <p>No skills yet.</p>
+    {% endfor %}
+
+    <h2>Add a skill</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit">Add skill</button>
+    </form>
+
+    <p><a href="{% url 'account_settings' %}">Back to account settings</a></p>
+{% endblock %}
