@@ -9,9 +9,11 @@ from django.urls import path
 from .forms.accounts import LoginForm
 from .views import AccountSettingsView
 from .views.home import HomeView
+from .views.posts import PostCreateView
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
+    path("posts/new/", PostCreateView.as_view(), name="create_post"),
     path(
         "accounts/login/",
         LoginView.as_view(
