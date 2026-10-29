@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import Skill, User, UserSkill
+from .models import Post, Skill, User, UserSkill
 
 
 @admin.register(User)
@@ -22,6 +22,12 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = [
         (None, {"fields": ["email", "usable_password", "password1", "password2"]}),
     ]
+
+
+@admin.register(Post)
+class PostAdmin(admin.ModelAdmin):
+    list_display = ["title", "author", "created_at"]
+    search_fields = ["title", "content", "author__email"]
 
 
 @admin.register(Skill)
