@@ -1,0 +1,26 @@
+{% extends "skill_matchmaker/base.html" %}
+
+{% block title %}Account settings | Skill Matchmaker{% endblock %}
+
+{% block content %}
+    <h1>Account settings</h1>
+
+    {% for message in messages %}
+        <p>{{ message }}</p>
+    {% endfor %}
+
+    <p>Email: {{ user.email }}</p>
+
+    {% if user.profile_picture %}
+        <img src="{{ user.profile_picture.url }}" alt="Profile picture" width="150">
+    {% endif %}
+
+    {# multipart/form-data is required, or the uploaded picture is silently dropped #}
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit">Save</button>
+    </form>
+
+    <p><a href="{% url 'password_change' %}">Change password</a></p>
+{% endblock %}
