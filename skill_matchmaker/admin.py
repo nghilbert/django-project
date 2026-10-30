@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import Post, Skill, User, UserSkill
+from .models import Comment, Post, Skill, User, UserSkill
 
 
 @admin.register(User)
@@ -28,6 +28,12 @@ class UserAdmin(BaseUserAdmin):
 class PostAdmin(admin.ModelAdmin):
     list_display = ["title", "author", "created_at"]
     search_fields = ["title", "content", "author__email"]
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ["author", "post", "created_at"]
+    search_fields = ["author__email", "post__title", "content"]
 
 
 @admin.register(Skill)

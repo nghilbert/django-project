@@ -1,10 +1,30 @@
-from django.contrib.auth.views import LoginView, PasswordChangeDoneView, PasswordChangeView
+from django.contrib.auth.views import (
+    LoginView,
+    LogoutView,
+    PasswordChangeDoneView,
+    PasswordChangeView,
+)
 from django.urls import path
+from django.views.generic import TemplateView
 
 from .forms.accounts import LoginForm
 from .views import AccountSettingsView, RemoveSkillView, SkillsView
+from .views.accounts import RegisterView
+from .views.activation import ActivateView, ResendActivationView
+from .views.home import HomeView
+from .views.posts import PostCreateView
 
 urlpatterns = [
+    path("", HomeView.as_view(), name="home"),
+    path("posts/new/", PostCreateView.as_view(), name="create_post"),
+    path("accounts/register/", RegisterView.as_view(), name="register"),
+    path("accounts/activate/resend/", ResendActivationView.as_view(), name="resend_activation"),
+    path("accounts/activate/<uidb64>/<token>/", ActivateView.as_view(), name="activate"),
+    path(
+        "accounts/check-email/",
+        TemplateView.as_view(template_name="skill_matchmaker/check_email.html"),
+        name="check_email",
+    ),
     path(
         "accounts/login/",
         LoginView.as_view(
@@ -14,6 +34,7 @@ urlpatterns = [
         ),
         name="login",
     ),
+    path("accounts/logout/", LogoutView.as_view(), name="logout"),
     path(
         "accounts/settings/",
         AccountSettingsView.as_view(),

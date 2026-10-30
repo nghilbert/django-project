@@ -1,0 +1,12 @@
+{% extends "skill_matchmaker/base.html" %}
+
+{% block title %}New post | Skill Matchmaker{% endblock %}
+
+{% block content %}
+    <h1>New post</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit">Create post</button>
+    </form>
+{% endblock %}

@@ -10,5 +10,6 @@
 	"files.associations": {
 		"**/templates/**/*.html": "django-html"
 	},
-	"python.analysis.enableDjangoSupport": true
+	"python.analysis.enableDjangoSupport": true,
+	"python.terminal.useEnvFile": true
 }
