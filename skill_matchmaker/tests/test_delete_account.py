@@ -1,6 +1,8 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from urllib.parse import urlsplit
 
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -12,7 +14,7 @@ class DeleteAccountTests(TestCase):
     password = "CampusPractice847!"
 
     def setUp(self):
-        self.user = User.objects.create_user(email="person@example.com", password=self.password)
+        self.user = User.objects.create_user(email="person@ilstu.edu", password=self.password)
         self.client.force_login(self.user)
 
     def test_requires_login(self):
@@ -63,6 +65,37 @@ class DeleteAccountTests(TestCase):
 
         deleted_response = self.client.get(reverse("account_deleted"))
         self.assertContains(deleted_response, "Your account was deleted")
+
+    def test_user_can_delete_then_re_register_verify_and_log_in(self):
+        self.client.post(reverse("delete_account"), {"password": self.password})
+
+        registration = self.client.post(
+            reverse("register"),
+            {
+                "email": self.user.email,
+                "first_name": "Person",
+                "last_name": "Example",
+                "password1": self.password,
+                "password2": self.password,
+            },
+        )
+
+        self.assertRedirects(registration, reverse("check_email"))
+        self.assertEqual(len(mail.outbox), 1)
+        user = User.objects.get(email=self.user.email)
+        self.assertFalse(user.is_active)
+
+        activation_path = urlsplit(mail.outbox[0].body.splitlines()[-1]).path
+        activation = self.client.get(activation_path)
+
+        self.assertRedirects(activation, reverse("login"))
+        login = self.client.post(
+            reverse("login"),
+            {"username": self.user.email, "password": self.password},
+        )
+
+        self.assertRedirects(login, reverse("home"))
+        self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
     def test_deleting_account_removes_profile_picture(self):
         with TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
