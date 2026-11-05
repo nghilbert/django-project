@@ -61,6 +61,14 @@ Open <http://127.0.0.1:8000/admin/>. Press **Ctrl+C** to stop.
 
 `uv run` uses `.venv` automatically, so you don't need to activate it.
 
+### Test account verification
+
+Open <http://127.0.0.1:8000/accounts/register/> and sign up with an `@ilstu.edu` address.
+Verification emails print in the terminal running the server; they aren't delivered to an inbox.
+Copy the full verification URL from that terminal and open it in your browser, then log in.
+The development email backend prints links without email encoding or inserted line breaks.
+Resending verification prints another link in the same terminal.
+
 ## Contributing
 
 Before starting a task, read [CONTRIBUTING.md](CONTRIBUTING.md). Tasks are on the [project board](https://github.com/users/nghilbert/projects/6).

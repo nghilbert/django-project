@@ -1,15 +1,18 @@
+from contextlib import redirect_stdout
 from datetime import datetime, timedelta
+from io import StringIO
 from unittest.mock import patch
 from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import resolve, reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
+from config import settings as project_settings
 from skill_matchmaker.models import User
 
 
@@ -151,3 +154,56 @@ class ActivationTests(TestCase):
         response = self.client.get(reverse("resend_activation"))
         self.assertContains(response, "Resend verification email")
         self.assertNotContains(response, "invalid, expired, or already used")
+
+
+@override_settings(MAILERS=project_settings.MAILERS)
+class ConsoleActivationTests(TestCase):
+    password = "CampusPractice847!"
+
+    def verify_printed_link(self, output, user):
+        links = [line for line in output.splitlines() if line.startswith("http://")]
+        self.assertEqual(len(links), 1)
+        link = links[0]
+        # Long URLs triggered MIME line wrapping in the default console backend.
+        self.assertGreater(len(link), 78)
+        self.assertNotIn("=", link)
+        user.refresh_from_db()
+        self.assertFalse(user.is_active)
+        self.assertRedirects(self.client.get(link), reverse("login"))
+        user.refresh_from_db()
+        self.assertTrue(user.is_active)
+        self.assertContains(self.client.get(link), "invalid, expired, or already used")
+        response = self.client.post(
+            reverse("login"), {"username": user.email, "password": self.password}
+        )
+        self.assertRedirects(response, reverse("home"))
+        self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
+
+    def test_registration_prints_directly_usable_link(self):
+        output = StringIO()
+        with redirect_stdout(output):
+            response = self.client.post(
+                reverse("register"),
+                {
+                    "email": "newstudent@ilstu.edu",
+                    "first_name": "New",
+                    "last_name": "Student",
+                    "password1": self.password,
+                    "password2": self.password,
+                },
+            )
+        self.assertRedirects(response, reverse("check_email"))
+        user = User.objects.get(email="newstudent@ilstu.edu")
+        self.verify_printed_link(output.getvalue(), user)
+
+    def test_resend_prints_directly_usable_link(self):
+        user = User.objects.create_user(
+            email="student@ilstu.edu", password=self.password, is_active=False
+        )
+        output = StringIO()
+        with redirect_stdout(output):
+            response = self.client.post(
+                reverse("resend_activation"), {"email": "STUDENT@ILSTU.EDU"}
+            )
+        self.assertRedirects(response, reverse("check_email"))
+        self.verify_printed_link(output.getvalue(), user)
