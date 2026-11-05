@@ -61,6 +61,10 @@ Open <http://127.0.0.1:8000/admin/>. Press **Ctrl+C** to stop.
 
 `uv run` uses `.venv` automatically, so you don't need to activate it.
 
+During local development, account verification emails are printed in the terminal running
+the server. The default email backend is for development only; configure
+`DJANGO_EMAIL_BACKEND` and the corresponding Django email settings for deployment.
+
 ## Contributing
 
 Before starting a task, read [CONTRIBUTING.md](CONTRIBUTING.md). Tasks are on the [project board](https://github.com/users/nghilbert/projects/6).
