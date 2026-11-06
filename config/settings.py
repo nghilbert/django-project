@@ -146,6 +146,6 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 MAILERS = {
     "default": {
-        "BACKEND": "django.core.mail.backends.console.EmailBackend",
+        "BACKEND": "skill_matchmaker.email_backend.ConsoleEmailBackend",
     },
 }
