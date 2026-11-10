@@ -33,12 +33,18 @@ class DeleteAccountTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'type="password"')
         self.assertContains(response, 'role="alert"')
+        self.assertContains(response, 'class="delete-warning"')
         self.assertContains(response, "Warning: This action cannot be undone")
         self.assertContains(
             response,
             "permanently delete your posts, comments, reactions, and skills",
         )
-        self.assertContains(response, f'href="{reverse("account_settings")}">Cancel</a>')
+        self.assertContains(response, 'class="delete-actions"')
+        self.assertContains(
+            response,
+            f'class="button" href="{reverse("account_settings")}">Cancel</a>',
+        )
+        self.assertContains(response, '<div class="delete-actions">')
 
     def test_incorrect_password_does_not_delete_or_log_out_user(self):
         response = self.client.post(reverse("delete_account"), {"password": "wrong"})
