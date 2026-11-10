@@ -146,6 +146,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 MAILERS = {
     "default": {
-        "BACKEND": "skill_matchmaker.email_backend.ConsoleEmailBackend",
+        "BACKEND": os.environ.get(
+            "DJANGO_EMAIL_BACKEND",
+            "skill_matchmaker.email_backend.ConsoleEmailBackend",
+        ),
     },
 }

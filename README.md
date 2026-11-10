@@ -69,6 +69,9 @@ Copy the full verification URL from that terminal and open it in your browser, t
 The development email backend prints links without email encoding or inserted line breaks.
 Resending verification prints another link in the same terminal.
 
+The default email backend is for development only; configure `DJANGO_EMAIL_BACKEND` and the
+corresponding Django email settings for deployment.
+
 ## Contributing
 
 Before starting a task, read [CONTRIBUTING.md](CONTRIBUTING.md). Tasks are on the [project board](https://github.com/users/nghilbert/projects/6).

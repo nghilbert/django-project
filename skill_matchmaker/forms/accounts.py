@@ -37,3 +37,17 @@ class LoginForm(AuthenticationForm):
     # Because User.USERNAME_FIELD is "email", the form's "username" field contains the email.
     def clean_username(self):
         return self.cleaned_data["username"].lower()
+
+
+class DeleteAccountForm(forms.Form):
+    password = forms.CharField(widget=forms.PasswordInput)
+
+    def __init__(self, *args, user, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def clean_password(self):
+        password = self.cleaned_data["password"]
+        if not self.user.check_password(password):
+            raise forms.ValidationError("Incorrect password.")
+        return password

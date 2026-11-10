@@ -9,7 +9,7 @@ from django.views.generic import TemplateView
 
 from .forms.accounts import LoginForm
 from .views import AccountSettingsView, RemoveSkillView, SkillsView
-from .views.accounts import RegisterView
+from .views.accounts import DeleteAccountView, RegisterView
 from .views.activation import ActivateView, ResendActivationView
 from .views.home import HomeView
 from .views.posts import PostCreateView
@@ -39,6 +39,12 @@ urlpatterns = [
         "accounts/settings/",
         AccountSettingsView.as_view(),
         name="account_settings",
+    ),
+    path("accounts/delete/", DeleteAccountView.as_view(), name="delete_account"),
+    path(
+        "accounts/deleted/",
+        TemplateView.as_view(template_name="skill_matchmaker/account_deleted.html"),
+        name="account_deleted",
     ),
     path(
         "accounts/password/",

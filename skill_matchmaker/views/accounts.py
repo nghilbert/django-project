@@ -1,7 +1,9 @@
+from django.contrib.auth import logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.views.generic import CreateView
+from django.views.generic import CreateView, DeleteView
 
-from ..forms.accounts import RegistrationForm
+from ..forms.accounts import DeleteAccountForm, RegistrationForm
 
 
 class RegisterView(CreateView):
@@ -13,3 +15,21 @@ class RegisterView(CreateView):
         response = super().form_valid(form)
         self.object.send_activation_email(self.request)
         return response
+
+
+class DeleteAccountView(LoginRequiredMixin, DeleteView):
+    form_class = DeleteAccountForm
+    template_name = "skill_matchmaker/account_confirm_delete.html"
+    success_url = reverse_lazy("account_deleted")
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        logout(self.request)
+        return super().form_valid(form)
