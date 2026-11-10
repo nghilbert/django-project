@@ -1,0 +1,18 @@
+{% extends "skill_matchmaker/base.html" %}
+
+{% block title %}{{ post.title }} | Skill Matchmaker{% endblock %}
+
+{% block content %}
+    <article class="post-detail">
+        <a class="post-detail-back" href="{% url 'home' %}">&larr; Back to posts</a>
+        <header>
+            <h1>{{ post.title }}</h1>
+            <p class="post-detail-meta">
+                Posted by <strong>{{ post.author.get_full_name|default:post.author.email }}</strong>
+                <span aria-hidden="true">&middot;</span>
+                <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"F j, Y" }}</time>
+            </p>
+        </header>
+        <div class="post-detail-content">{{ post.content|linebreaks }}</div>
+    </article>
+{% endblock %}

@@ -82,6 +82,25 @@ class HomeViewTests(TestCase):
 
         self.assertContains(response, "No posts yet.")
 
+    def test_long_home_post_is_truncated_with_read_more_link(self):
+        words = [f"word{number}" for number in range(1, 61)]
+        post = Post.objects.create(
+            author=self.user,
+            title="A long post",
+            content=" ".join(words),
+        )
+
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(response, "word50 \u2026")
+        self.assertNotContains(response, "word51")
+        self.assertNotContains(response, "word60")
+        self.assertContains(
+            response,
+            f'<a class="post-read-more" href="{post.get_absolute_url()}">Read more</a>',
+            html=True,
+        )
+
 
 class PostCreateViewTests(TestCase):
     def test_logged_in_user_can_create_a_post(self):
@@ -103,3 +122,62 @@ class PostCreateViewTests(TestCase):
         response = self.client.get(reverse("create_post"))
 
         self.assertRedirects(response, f"{reverse('login')}?next={reverse('create_post')}")
+
+
+class PostDetailViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="person@example.com",
+            password="test-password",
+        )
+        self.post = Post.objects.create(
+            author=self.user,
+            title="A post title",
+            content="First line\nSecond line",
+        )
+
+    def test_post_absolute_url_uses_post_detail_route(self):
+        self.assertEqual(self.post.get_absolute_url(), f"/posts/{self.post.pk}/")
+
+    def test_logged_in_user_can_view_post_details(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(self.post.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["post"], self.post)
+        self.assertContains(response, "A post title")
+        self.assertContains(response, "person@example.com")
+        self.assertContains(response, date_format(self.post.created_at, "F j, Y"))
+        self.assertContains(response, "First line<br>Second line")
+
+    def test_logged_out_user_is_redirected_from_post_details(self):
+        response = self.client.get(self.post.get_absolute_url())
+
+        self.assertRedirects(
+            response,
+            f"{reverse('login')}?next={self.post.get_absolute_url()}",
+        )
+
+    def test_missing_post_returns_not_found(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("post_detail", args=[self.post.pk + 1]))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_home_post_title_and_comment_link_open_post_page(self):
+        self.client.force_login(self.user)
+
+        response = self.client.get(reverse("home"))
+
+        self.assertContains(
+            response,
+            f'<h2><a href="{self.post.get_absolute_url()}">A post title</a></h2>',
+            html=True,
+        )
+        self.assertContains(
+            response,
+            f'<a class="post-comment-link" href="{self.post.get_absolute_url()}">Comment</a>',
+            html=True,
+        )

@@ -1,9 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.views.generic import CreateView
+from django.views.generic import CreateView, DetailView
 
 from ..forms.posts import PostForm
 from ..models import Post
+
+
+class PostDetailView(LoginRequiredMixin, DetailView):
+    model = Post
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
