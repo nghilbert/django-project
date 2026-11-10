@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import Comment, Post, Skill, User, UserSkill
+from .models import Comment, Post, Reaction, Skill, User, UserSkill
 
 
 @admin.register(User)
@@ -34,6 +34,13 @@ class PostAdmin(admin.ModelAdmin):
 class CommentAdmin(admin.ModelAdmin):
     list_display = ["author", "post", "created_at"]
     search_fields = ["author__email", "post__title", "content"]
+
+
+@admin.register(Reaction)
+class ReactionAdmin(admin.ModelAdmin):
+    list_display = ["emoji", "user", "post", "created_at"]
+    list_filter = ["emoji"]
+    search_fields = ["user__email", "post__title"]
 
 
 @admin.register(Skill)
