@@ -15,7 +15,7 @@ from .views import (
     RemoveSkillView,
     SkillsView,
 )
-from .views.accounts import RegisterView
+from .views.accounts import DeleteAccountView, RegisterView
 from .views.activation import ActivateView, ResendActivationView
 from .views.home import HomeView
 from .views.posts import PostCreateView
@@ -51,6 +51,12 @@ urlpatterns = [
         "accounts/email/confirm/<token>/",
         ConfirmEmailChangeView.as_view(),
         name="confirm_email_change",
+    ),
+    path("accounts/delete/", DeleteAccountView.as_view(), name="delete_account"),
+    path(
+        "accounts/deleted/",
+        TemplateView.as_view(template_name="skill_matchmaker/account_deleted.html"),
+        name="account_deleted",
     ),
     path(
         "accounts/password/",

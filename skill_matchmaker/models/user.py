@@ -58,6 +58,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     def email_user(self, subject: str, message: str, from_email: str | None = None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
+    def delete(self, *args, **kwargs):
+        self.profile_picture.delete(save=False)
+        return super().delete(*args, **kwargs)
+
     def send_activation_email(self, request):
         uid = urlsafe_base64_encode(force_bytes(self.pk))
         token = default_token_generator.make_token(self)
