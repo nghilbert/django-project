@@ -1,0 +1,10 @@
+{% extends "skill_matchmaker/base.html" %}
+
+{% block title %}Invalid link | Skill Matchmaker{% endblock %}
+
+{% block content %}
+    <h1>Invalid link</h1>
+    <p>This email change link is invalid, expired, or already used. Your email was not changed.</p>
+    <p><a href="{% url 'change_email' %}">Request a new link</a></p>
+    <p><a href="{% url 'account_settings' %}">Back to account settings</a></p>
+{% endblock %}

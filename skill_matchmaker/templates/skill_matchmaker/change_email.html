@@ -1,0 +1,15 @@
+{% extends "skill_matchmaker/base.html" %}
+
+{% block title %}Change email | Skill Matchmaker{% endblock %}
+
+{% block content %}
+    <h1>Change email</h1>
+    <p>Current email: {{ user.email }}</p>
+    <p>We'll send a link to your new email. Your email changes when you click it.</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form }}
+        <button type="submit">Send confirmation link</button>
+    </form>
+    <p><a href="{% url 'account_settings' %}">Back to account settings</a></p>
+{% endblock %}

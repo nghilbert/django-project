@@ -9,7 +9,7 @@
         <p>{{ message }}</p>
     {% endfor %}
 
-    <p>Email: {{ user.email }}</p>
+    <p>Email: {{ user.email }} <a href="{% url 'change_email' %}">Change email</a></p>
 
     {% if user.profile_picture %}
         <img src="{{ user.profile_picture.url }}" alt="Profile picture" width="150">

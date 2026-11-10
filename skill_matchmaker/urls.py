@@ -8,7 +8,13 @@ from django.urls import path
 from django.views.generic import TemplateView
 
 from .forms.accounts import LoginForm
-from .views import AccountSettingsView, RemoveSkillView, SkillsView
+from .views import (
+    AccountSettingsView,
+    ConfirmEmailChangeView,
+    EmailChangeView,
+    RemoveSkillView,
+    SkillsView,
+)
 from .views.accounts import RegisterView
 from .views.activation import ActivateView, ResendActivationView
 from .views.home import HomeView
@@ -39,6 +45,12 @@ urlpatterns = [
         "accounts/settings/",
         AccountSettingsView.as_view(),
         name="account_settings",
+    ),
+    path("accounts/email/", EmailChangeView.as_view(), name="change_email"),
+    path(
+        "accounts/email/confirm/<token>/",
+        ConfirmEmailChangeView.as_view(),
+        name="confirm_email_change",
     ),
     path(
         "accounts/password/",
