@@ -2,6 +2,7 @@ from django import forms
 from django.core.files.uploadedfile import UploadedFile
 
 from ..models import User
+from .accounts import IlstuEmailField
 
 MAX_PICTURE_SIZE = 2 * 1024 * 1024  # 2 MB
 
@@ -25,3 +26,13 @@ class AccountForm(forms.ModelForm):
             raise forms.ValidationError("Pictures must be 2 MB or smaller.")
 
         return picture
+
+
+class EmailChangeForm(forms.ModelForm):
+    """Asks for a new @ilstu.edu email. The model lowercases it and rejects one that's taken."""
+
+    email = IlstuEmailField()
+
+    class Meta:
+        model = User
+        fields = ["email"]

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.tokens import default_token_generator
+from django.core import signing
 from django.core.mail import send_mail
 from django.db import models
 from django.urls import reverse
@@ -77,4 +78,33 @@ class User(AbstractBaseUser, PermissionsMixin):
         # Activating an account doesn't invalidate Django's password-reset token.
         if user.is_active or not default_token_generator.check_token(user, token):
             return None
+        return user
+
+    def send_email_change_link(self, request, new_email: str):
+        # Signing the new email in the token means it can't be edited without breaking the link
+        token = signing.dumps({"user": self.pk, "email": new_email}, salt="change-email")
+        link = request.build_absolute_uri(reverse("confirm_email_change", args=[token]))
+        # Sent to the new address, not self.email, to prove the user owns it
+        send_mail(
+            "Confirm your new Skill Matchmaker email",
+            f"Click this link to confirm your new email:\n\n{link}",
+            None,
+            [new_email],
+        )
+
+    @classmethod
+    def from_email_change_link(cls, token):
+        try:
+            # Expires after 3 days, like the sign-up link
+            data = signing.loads(token, salt="change-email", max_age=60 * 60 * 24 * 3)
+        except signing.BadSignature:
+            return None
+
+        # Someone may have signed up with it since, or the link was already used
+        if cls.objects.filter(email=data["email"]).exists():
+            return None
+
+        user = cls.objects.filter(pk=data["user"]).first()
+        if user is not None:
+            user.email = data["email"]
         return user
