@@ -14,5 +14,6 @@
             </p>
         </header>
         <div class="post-detail-content">{{ post.content|linebreaks }}</div>
+        {% include "skill_matchmaker/_reactions.html" with reactions=reaction_list %}
     </article>
 {% endblock %}
