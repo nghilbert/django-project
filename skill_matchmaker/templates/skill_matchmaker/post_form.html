@@ -1,12 +1,12 @@
 {% extends "skill_matchmaker/base.html" %}
 
-{% block title %}New post | Skill Matchmaker{% endblock %}
+{% block title %}{% if object %}Edit post{% else %}New post{% endif %} | Skill Matchmaker{% endblock %}
 
 {% block content %}
-    <h1>New post</h1>
+    <h1>{% if object %}Edit post{% else %}New post{% endif %}</h1>
     <form method="post">
         {% csrf_token %}
         {{ form }}
-        <button type="submit">Create post</button>
+        <button type="submit">{% if object %}Save changes{% else %}Create post{% endif %}</button>
     </form>
 {% endblock %}
