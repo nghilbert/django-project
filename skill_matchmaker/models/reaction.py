@@ -37,3 +37,15 @@ class Reaction(models.Model):
 
     def __str__(self):
         return f"{self.get_emoji_display()} by {self.user} on {self.post}"  # type: ignore
+
+    @classmethod
+    def toggle(cls, post, user, emoji):
+        """Add, switch, or remove the user's reaction on a post."""
+        reaction = cls.objects.filter(post=post, user=user).first()
+        if reaction is None:
+            cls.objects.create(post=post, user=user, emoji=emoji)
+        elif reaction.emoji == emoji:
+            reaction.delete()
+        else:
+            reaction.emoji = emoji
+            reaction.save(update_fields=["emoji"])
