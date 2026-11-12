@@ -5,7 +5,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 
-from skill_matchmaker.models import Post, User
+from skill_matchmaker.forms.comments import CommentForm
+from skill_matchmaker.models import Comment, Post, User
 
 
 class NavigationTests(TestCase):
@@ -181,6 +182,116 @@ class PostDetailViewTests(TestCase):
             f'<a class="post-comment-link" href="{self.post.get_absolute_url()}">Comment</a>',
             html=True,
         )
+
+
+class PostCommentTests(TestCase):
+    def setUp(self):
+        self.author = User.objects.create_user(
+            email="author@example.com",
+            password="test-password",
+        )
+        self.commenter = User.objects.create_user(
+            email="commenter@example.com",
+            password="test-password",
+        )
+        self.post = Post.objects.create(
+            author=self.author,
+            title="A post title",
+            content="Post content",
+        )
+        self.url = self.post.get_absolute_url()
+
+    def test_post_page_shows_comment_form(self):
+        self.client.force_login(self.commenter)
+
+        response = self.client.get(self.url)
+
+        self.assertIsInstance(response.context["form"], CommentForm)
+        self.assertContains(response, 'name="content"')
+
+    def test_post_page_without_comments_says_so(self):
+        self.client.force_login(self.commenter)
+
+        response = self.client.get(self.url)
+
+        self.assertContains(response, "No comments yet.")
+
+    def test_post_page_shows_comments_oldest_first_with_authors(self):
+        Comment.objects.create(post=self.post, author=self.author, content="First comment")
+        Comment.objects.create(post=self.post, author=self.commenter, content="Second comment")
+        self.client.force_login(self.commenter)
+
+        response = self.client.get(self.url)
+
+        self.assertNotContains(response, "No comments yet.")
+        self.assertContains(response, "author@example.com")
+        self.assertContains(response, "commenter@example.com")
+        content = response.content.decode()
+        self.assertLess(content.index("First comment"), content.index("Second comment"))
+
+    def test_post_page_only_shows_its_own_comments(self):
+        other_post = Post.objects.create(author=self.author, title="Other", content="Other")
+        Comment.objects.create(post=other_post, author=self.author, content="Elsewhere")
+        self.client.force_login(self.commenter)
+
+        response = self.client.get(self.url)
+
+        self.assertNotContains(response, "Elsewhere")
+
+    def test_user_can_comment_and_is_sent_back_to_post_page(self):
+        self.client.force_login(self.commenter)
+
+        response = self.client.post(self.url, {"content": "Nice post!"})
+
+        self.assertRedirects(response, self.url)
+        comment = Comment.objects.get()
+        self.assertEqual(comment.content, "Nice post!")
+        self.assertEqual(comment.post, self.post)
+        self.assertEqual(comment.author, self.commenter)
+
+    def test_author_can_comment_on_their_own_post(self):
+        self.client.force_login(self.author)
+
+        response = self.client.post(self.url, {"content": "Thanks for reading"})
+
+        self.assertRedirects(response, self.url)
+        self.assertEqual(Comment.objects.get().author, self.author)
+
+    def test_blank_comment_shows_post_page_with_error(self):
+        self.client.force_login(self.commenter)
+
+        response = self.client.post(self.url, {"content": ""})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["post"], self.post)
+        self.assertContains(response, "Enter a comment")
+        self.assertFalse(Comment.objects.exists())
+
+    def test_comment_of_only_spaces_counts_as_blank(self):
+        self.client.force_login(self.commenter)
+
+        response = self.client.post(self.url, {"content": "   \n  "})
+
+        self.assertContains(response, "Enter a comment")
+        self.assertFalse(Comment.objects.exists())
+
+    def test_logged_out_user_cannot_comment(self):
+        response = self.client.post(self.url, {"content": "Nice post!"})
+
+        self.assertRedirects(response, f"{reverse('login')}?next={self.url}")
+        self.assertFalse(Comment.objects.exists())
+
+    def test_cannot_comment_on_missing_post(self):
+        self.client.force_login(self.commenter)
+
+        response = self.client.post(
+            reverse("post_detail", args=[self.post.pk + 1]),
+            {"content": "Nice post!"},
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(Comment.objects.exists())
+
 
 class PostUpdateViewTests(TestCase):
     def setUp(self):
