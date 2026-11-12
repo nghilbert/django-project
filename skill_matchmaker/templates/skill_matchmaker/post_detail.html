@@ -12,6 +12,9 @@
                 <span aria-hidden="true">&middot;</span>
                 <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"F j, Y" }}</time>
             </p>
+            {% if post.author == user %}
+                <a class="post-detail-edit" href="{% url 'edit_post' post.pk %}">Edit</a>
+            {% endif %}
         </header>
         <div class="post-detail-content">{{ post.content|linebreaks }}</div>
         {% include "skill_matchmaker/_reactions.html" with reactions=reaction_list %}
