@@ -9,6 +9,11 @@ from ..models import Post
 class PostDetailView(LoginRequiredMixin, DetailView):
     model = Post
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["reaction_list"] = self.object.reaction_summary(self.request.user)
+        return context
+
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post

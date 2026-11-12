@@ -1,0 +1,10 @@
+<form class="reactions" method="post" action="{% url 'react' post.pk %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path }}">
+    {% for r in reactions %}
+    <button type="submit" name="emoji" value="{{ r.value }}"
+        aria-pressed="{% if r.picked %}true{% else %}false{% endif %}">
+        {{ r.label }} {{ r.count }}
+    </button>
+    {% endfor %}
+</form>
