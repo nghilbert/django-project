@@ -181,3 +181,115 @@ class PostDetailViewTests(TestCase):
             f'<a class="post-comment-link" href="{self.post.get_absolute_url()}">Comment</a>',
             html=True,
         )
+
+class PostUpdateViewTests(TestCase):
+    def setUp(self):
+        self.author = User.objects.create_user(
+            email="author@example.com",
+            password="test-password",
+        )
+        self.other_user = User.objects.create_user(
+            email="other@example.com",
+            password="test-password",
+        )
+        self.post = Post.objects.create(
+            author=self.author,
+            title="Original title",
+            content="Original content",
+        )
+        self.url = reverse("edit_post", args=[self.post.pk])
+
+    def test_edit_post_route(self):
+        self.assertEqual(self.url, f"/posts/{self.post.pk}/edit/")
+
+    def test_author_sees_form_filled_in_with_post(self):
+        self.client.force_login(self.author)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["form"].instance, self.post)
+        self.assertContains(response, "<h1>Edit post</h1>", html=True)
+        self.assertContains(response, 'value="Original title"')
+        self.assertContains(response, "Original content")
+
+    def test_author_can_edit_post_and_is_sent_to_post_page(self):
+        self.client.force_login(self.author)
+        original_updated_at = self.post.updated_at
+
+        response = self.client.post(
+            self.url,
+            {"title": "New title", "content": "New content"},
+        )
+
+        self.assertRedirects(response, self.post.get_absolute_url())
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.title, "New title")
+        self.assertEqual(self.post.content, "New content")
+        self.assertEqual(self.post.author, self.author)
+        self.assertGreater(self.post.updated_at, original_updated_at)
+
+    def test_invalid_edit_shows_form_again_and_keeps_post(self):
+        self.client.force_login(self.author)
+
+        response = self.client.post(self.url, {"title": "", "content": "New content"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["form"].errors)
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.title, "Original title")
+
+    def test_other_user_cannot_open_edit_page(self):
+        self.client.force_login(self.other_user)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_other_user_cannot_edit_post(self):
+        self.client.force_login(self.other_user)
+
+        response = self.client.post(
+            self.url,
+            {"title": "Hijacked", "content": "Hijacked"},
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.title, "Original title")
+        self.assertEqual(self.post.content, "Original content")
+
+    def test_logged_out_user_is_redirected_from_edit_page(self):
+        response = self.client.get(self.url)
+
+        self.assertRedirects(response, f"{reverse('login')}?next={self.url}")
+
+    def test_missing_post_returns_not_found(self):
+        self.client.force_login(self.author)
+
+        response = self.client.get(reverse("edit_post", args=[self.post.pk + 100]))
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_author_sees_edit_link_on_post_page(self):
+        self.client.force_login(self.author)
+
+        response = self.client.get(self.post.get_absolute_url())
+
+        self.assertContains(response, f'href="{self.url}"')
+
+    def test_other_user_does_not_see_edit_link_on_post_page(self):
+        self.client.force_login(self.other_user)
+
+        response = self.client.get(self.post.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, f'href="{self.url}"')
+
+    def test_create_page_still_says_new_post(self):
+        self.client.force_login(self.author)
+
+        response = self.client.get(reverse("create_post"))
+
+        self.assertContains(response, "<h1>New post</h1>", html=True)
+        self.assertNotContains(response, "Edit post")

@@ -24,3 +24,18 @@ class Post(models.Model):
 
     def get_absolute_url(self):
         return reverse("post_detail", args=[self.pk])
+
+    def reaction_summary(self, user):
+        from .reaction import Reaction  # local import avoids circular import
+
+        counts = dict(self.reactions.values_list("emoji").annotate(models.Count("id")))
+        picked = self.reactions.filter(user=user).values_list("emoji", flat=True).first()
+        return [
+            {
+                "value": value,
+                "label": label,
+                "count": counts.get(value, 0),
+                "picked": value == picked,
+            }
+            for value, label in Reaction.Emoji.choices
+        ]

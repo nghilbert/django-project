@@ -20,6 +20,7 @@
                 <p>{{ post.content|linebreaksbr }}</p>
             {% endif %}
             <a class="post-comment-link" href="{{ post.get_absolute_url }}">Comment</a>
+            {% include "skill_matchmaker/_reactions.html" with reactions=post.reaction_list %}
         </article>
     {% empty %}
         <p>No posts yet.</p>
