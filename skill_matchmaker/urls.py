@@ -18,12 +18,13 @@ from .views import (
 from .views.accounts import DeleteAccountView, RegisterView
 from .views.activation import ActivateView, ResendActivationView
 from .views.home import HomeView
-from .views.posts import PostCreateView, PostDetailView
+from .views.posts import PostCreateView, PostDeleteView, PostDetailView
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path("posts/new/", PostCreateView.as_view(), name="create_post"),
     path("posts/<int:pk>/", PostDetailView.as_view(), name="post_detail"),
+    path("posts/<int:pk>/delete/", PostDeleteView.as_view(), name="delete_post"),
     path("accounts/register/", RegisterView.as_view(), name="register"),
     path("accounts/activate/resend/", ResendActivationView.as_view(), name="resend_activation"),
     path("accounts/activate/<uidb64>/<token>/", ActivateView.as_view(), name="activate"),
