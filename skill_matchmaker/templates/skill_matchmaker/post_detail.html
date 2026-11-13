@@ -4,7 +4,12 @@
 
 {% block content %}
     <article class="post-detail">
-        <a class="post-detail-back" href="{% url 'home' %}">&larr; Back to posts</a>
+        <div class="post-detail-actions">
+            <a class="post-detail-back" href="{% url 'home' %}">&larr; Back to posts</a>
+            {% if post.author == user %}
+                <a class="button post-detail-delete" href="{% url 'delete_post' post.pk %}">Delete page</a>
+            {% endif %}
+        </div>
         <header>
             <h1>{{ post.title }}</h1>
             <p class="post-detail-meta">

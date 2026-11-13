@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, DetailView, UpdateView
+from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 
 from ..forms.posts import PostForm
 from ..models import Post
@@ -13,6 +13,14 @@ class PostDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context["reaction_list"] = self.object.reaction_summary(self.request.user)
         return context
+
+
+class PostDeleteView(LoginRequiredMixin, DeleteView):
+    model = Post
+    success_url = reverse_lazy("home")
+
+    def get_queryset(self):
+        return Post.objects.filter(author=self.request.user)
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -31,4 +39,3 @@ class PostUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return Post.objects.filter(author=self.request.user)
-
