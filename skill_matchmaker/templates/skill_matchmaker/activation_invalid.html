@@ -4,6 +4,9 @@
 
 {% block content %}
     <h1>Verify your account</h1>
+    {% for message in messages %}
+        <p role="alert">{{ message }}</p>
+    {% endfor %}
     {% if invalid_link %}
         <p>This verification link is invalid, expired, or already used.</p>
     {% endif %}

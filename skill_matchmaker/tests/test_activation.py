@@ -12,7 +12,6 @@ from django.urls import resolve, reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
-from config import settings as project_settings
 from skill_matchmaker.models import User
 
 
@@ -156,7 +155,9 @@ class ActivationTests(TestCase):
         self.assertNotContains(response, "invalid, expired, or already used")
 
 
-@override_settings(MAILERS=project_settings.MAILERS)
+@override_settings(
+    MAILERS={"default": {"BACKEND": "skill_matchmaker.email_backend.ConsoleEmailBackend"}}
+)
 class ConsoleActivationTests(TestCase):
     password = "CampusPractice847!"
 

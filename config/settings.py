@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -152,3 +153,25 @@ MAILERS = {
         ),
     },
 }
+
+# Real delivery is opt-in; teammates can keep using the console without credentials.
+if MAILERS["default"]["BACKEND"] == "django.core.mail.backends.smtp.EmailBackend":
+    email_user = os.environ.get("DJANGO_EMAIL_HOST_USER", "").strip()
+    email_password = os.environ.get("DJANGO_EMAIL_HOST_PASSWORD", "").strip()
+    if not email_user or not email_password:
+        raise ImproperlyConfigured(
+            "SMTP email requires DJANGO_EMAIL_HOST_USER and DJANGO_EMAIL_HOST_PASSWORD. "
+            "For Gmail, use the project account's app password."
+        )
+
+    MAILERS["default"]["OPTIONS"] = {
+        "host": os.environ.get("DJANGO_EMAIL_HOST", "smtp.gmail.com"),
+        "port": int(os.environ.get("DJANGO_EMAIL_PORT", "587")),
+        "username": email_user,
+        "password": email_password,
+        "use_tls": True,
+        "timeout": 10,
+    }
+    DEFAULT_FROM_EMAIL = os.environ.get(
+        "DJANGO_DEFAULT_FROM_EMAIL", f"Skill Matchmaker <{email_user}>"
+    )

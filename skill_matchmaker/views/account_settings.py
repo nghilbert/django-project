@@ -38,7 +38,13 @@ class EmailChangeView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         # Don't call super().form_valid(), which would save the email before it's confirmed
-        self.object.send_email_change_link(self.request, form.instance.email)
+        if not self.object.send_email_change_link(self.request, form.instance.email):
+            form.add_error(
+                None,
+                "We couldn't send the confirmation email. Your email address hasn't changed. "
+                "Please try again in a few minutes.",
+            )
+            return self.form_invalid(form)
         return redirect(self.get_success_url())
 
 
