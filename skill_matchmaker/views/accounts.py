@@ -1,5 +1,7 @@
+from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView
 
@@ -13,7 +15,13 @@ class RegisterView(CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        self.object.send_activation_email(self.request)
+        if not self.object.send_activation_email(self.request):
+            messages.error(
+                self.request,
+                "Your account was created, but we couldn't send the verification email. "
+                "Use the form below to try again in a few minutes.",
+            )
+            return redirect("resend_activation")
         return response
 
 

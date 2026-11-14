@@ -32,4 +32,6 @@ class ResendActivationView(FormView):
         user = User.objects.filter(email=email, is_active=False).first()
         if user is not None:
             user.send_activation_email(self.request)
+        # Delivery failures are logged, but the response stays identical for unknown,
+        # active, and unverified addresses so it doesn't disclose account membership.
         return super().form_valid(form)

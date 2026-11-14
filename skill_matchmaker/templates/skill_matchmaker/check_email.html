@@ -4,7 +4,12 @@
 
 {% block content %}
     <h1>Check your email</h1>
-    <p>If we need to verify your email, we sent you a link. Check your inbox and spam folder.</p>
-    <p><a href="{% url 'resend_activation' %}">Resend verification email</a></p>
+    <p>If we need to verify your email, check your inbox and spam folder for a link.</p>
+    <p>If no email arrives, try again in a few minutes.</p>
+    {% if user.is_authenticated %}
+        <p><a href="{% url 'change_email' %}">Request another email change link</a></p>
+    {% else %}
+        <p><a href="{% url 'resend_activation' %}">Resend verification email</a></p>
+    {% endif %}
     <p><a href="{% url 'login' %}">Log in</a></p>
 {% endblock %}

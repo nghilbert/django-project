@@ -1,12 +1,13 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.tokens import default_token_generator
 from django.core import signing
-from django.core.mail import send_mail
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+
+from ..email import send_account_email
 
 
 class UserManager(BaseUserManager):
@@ -59,7 +60,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return reverse("member_profile", args=[self.pk])
 
     def email_user(self, subject: str, message: str, from_email: str | None = None, **kwargs):
-        send_mail(subject, message, from_email, [self.email], **kwargs)
+        return send_account_email(subject, message, self.email, from_email, **kwargs)
 
     def delete(self, *args, **kwargs):
         self.profile_picture.delete(save=False)
@@ -69,7 +70,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         uid = urlsafe_base64_encode(force_bytes(self.pk))
         token = default_token_generator.make_token(self)
         link = request.build_absolute_uri(reverse("activate", args=[uid, token]))
-        self.email_user(
+        return self.email_user(
             "Verify your Skill Matchmaker account",
             f"Click this link to verify your account:\n\n{link}",
         )
@@ -92,11 +93,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         token = signing.dumps({"user": self.pk, "email": new_email}, salt="change-email")
         link = request.build_absolute_uri(reverse("confirm_email_change", args=[token]))
         # Sent to the new address, not self.email, to prove the user owns it
-        send_mail(
+        return send_account_email(
             "Confirm your new Skill Matchmaker email",
             f"Click this link to confirm your new email:\n\n{link}",
-            None,
-            [new_email],
+            new_email,
         )
 
     @classmethod
