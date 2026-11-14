@@ -222,8 +222,25 @@
         display: inline-block;
         font-size: 0.9rem;
         font-weight: 700;
-        margin-bottom: 2rem;
         text-decoration: none;
+      }
+
+      .post-detail-actions {
+        align-items: center;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+      }
+
+      .page-content .post-detail-delete {
+        background: #b42318;
+        font-size: 0.8rem;
+        padding: 0.4rem 0.65rem;
+      }
+
+      .page-content .post-detail-delete:hover {
+        background: #912018;
       }
 
       .post-detail-back:hover {
@@ -340,6 +357,10 @@
         }
 
         .post-detail-back {
+          margin-bottom: 0;
+        }
+
+        .post-detail-actions {
           margin-bottom: 1.5rem;
         }
       }

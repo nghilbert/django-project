@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, DetailView, UpdateView
+from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 from django.views.generic.edit import FormMixin
 
 from ..forms.comments import CommentForm
@@ -38,6 +38,14 @@ class PostDetailView(LoginRequiredMixin, FormMixin, DetailView):
         return self.object.get_absolute_url()
 
 
+class PostDeleteView(LoginRequiredMixin, DeleteView):
+    model = Post
+    success_url = reverse_lazy("home")
+
+    def get_queryset(self):
+        return Post.objects.filter(author=self.request.user)
+
+
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostForm
@@ -54,4 +62,3 @@ class PostUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         return Post.objects.filter(author=self.request.user)
-

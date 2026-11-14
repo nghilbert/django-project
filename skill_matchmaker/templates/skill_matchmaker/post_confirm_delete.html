@@ -1,0 +1,27 @@
+{% extends "skill_matchmaker/base.html" %}
+
+{% block title %}Delete post | Skill Matchmaker{% endblock %}
+
+{% block content %}
+    <h1>Delete this post?</h1>
+    <section class="delete-warning" aria-labelledby="post-title">
+        <h2 id="post-title">{{ post.title }}</h2>
+        <p>
+            Posted by <strong>{{ post.author.get_full_name|default:post.author.email }}</strong>
+            <span aria-hidden="true">&middot;</span>
+            <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"F j, Y" }}</time>
+        </p>
+        <p>
+            Last updated
+            <time datetime="{{ post.updated_at|date:'c' }}">{{ post.updated_at|date:"F j, Y" }}</time>
+        </p>
+    </section>
+
+    <div class="delete-actions">
+        <form class="delete-form" method="post">
+            {% csrf_token %}
+            <button type="submit">Delete</button>
+        </form>
+        <a class="button" href="{% url 'post_detail' post.pk %}">Cancel</a>
+    </div>
+{% endblock %}
