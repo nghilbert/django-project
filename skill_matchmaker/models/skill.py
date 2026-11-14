@@ -15,6 +15,16 @@ class Skill(models.Model):
         return self.name
 
 
+class UserSkillQuerySet(models.QuerySet):
+    """Skills a member can teach or wants to learn, including their skill details."""
+
+    def offered(self):
+        return self.filter(skill_type=UserSkill.SkillType.OFFERED).select_related("skill")
+
+    def sought(self):
+        return self.filter(skill_type=UserSkill.SkillType.SOUGHT).select_related("skill")
+
+
 class UserSkill(models.Model):
     """A skill a user can teach or wants to learn."""
 
@@ -41,6 +51,8 @@ class UserSkill(models.Model):
     skill_type = models.CharField(max_length=10, choices=SkillType.choices)
     level = models.CharField(max_length=20, choices=Level.choices, default=Level.BEGINNER)
 
+    objects = UserSkillQuerySet.as_manager()
+
     class Meta:
         constraints = [
             # The same skill can be added once to teach and once to learn, but not twice for either
@@ -51,4 +63,4 @@ class UserSkill(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user}: {self.skill} ({self.get_skill_type_display()})" # type: ignore
+        return f"{self.user}: {self.skill} ({self.get_skill_type_display()})"  # type: ignore

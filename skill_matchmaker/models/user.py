@@ -55,6 +55,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}".strip()
 
+    def get_absolute_url(self):
+        return reverse("member_profile", args=[self.pk])
+
     def email_user(self, subject: str, message: str, from_email: str | None = None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 

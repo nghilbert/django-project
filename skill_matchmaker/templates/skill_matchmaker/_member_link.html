@@ -1,0 +1,5 @@
+{% if member %}
+    <a class="member-link" href="{{ member.get_absolute_url }}">{{ member.get_full_name|default:member.email }}</a>
+{% else %}
+    Deleted user
+{% endif %}
