@@ -13,7 +13,7 @@
         <header>
             <h1>{{ post.title }}</h1>
             <p class="post-detail-meta">
-                Posted by <strong>{{ post.author.get_full_name|default:post.author.email }}</strong>
+                Posted by <strong>{% include "skill_matchmaker/_member_link.html" with member=post.author only %}</strong>
                 <span aria-hidden="true">&middot;</span>
                 <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"F j, Y" }}</time>
             </p>
@@ -23,5 +23,27 @@
         </header>
         <div class="post-detail-content">{{ post.content|linebreaks }}</div>
         {% include "skill_matchmaker/_reactions.html" with reactions=reaction_list %}
+
+        <section class="comments" aria-labelledby="comments-heading">
+            <h2 id="comments-heading">Comments</h2>
+            {% for comment in post.comments.all %}
+                <article class="comment">
+                    <p class="comment-meta">
+                        <strong>{% include "skill_matchmaker/_member_link.html" with member=comment.author only %}</strong>
+                        <span aria-hidden="true">&middot;</span>
+                        <time datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"F j, Y" }}</time>
+                    </p>
+                    <div class="comment-content">{{ comment.content|linebreaks }}</div>
+                </article>
+            {% empty %}
+                <p class="comments-empty">No comments yet.</p>
+            {% endfor %}
+
+            <form class="comment-form" method="post">
+                {% csrf_token %}
+                {{ form }}
+                <button type="submit">Add comment</button>
+            </form>
+        </section>
     </article>
 {% endblock %}
