@@ -207,7 +207,8 @@
         color: #c5d2de;
       }
 
-      .post-detail {
+      .post-detail,
+      .member-profile {
         background: #fff;
         border-top: 0.35rem solid #17324d;
         border-radius: 0.5rem;
@@ -337,7 +338,117 @@
         width: 100%;
       }
 
+      .member-link {
+        color: inherit;
+        font-weight: 600;
+        text-underline-offset: 0.2rem;
+      }
+
+      .member-link:focus-visible {
+        border-radius: 0.2rem;
+        outline: 3px solid #f6c453;
+        outline-offset: 3px;
+      }
+
+      .member-profile-header {
+        align-items: center;
+        display: flex;
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+
+      .member-profile-header > div {
+        min-width: 0;
+      }
+
+      .member-avatar {
+        border-radius: 50%;
+        flex-shrink: 0;
+        height: 7rem;
+        object-fit: cover;
+        width: 7rem;
+      }
+
+      .member-avatar-placeholder {
+        align-items: center;
+        background: #e7eef5;
+        color: #17324d;
+        display: flex;
+        font-size: 2.5rem;
+        font-weight: 700;
+        justify-content: center;
+      }
+
+      .member-profile-label,
+      .member-empty {
+        color: #526575;
+      }
+
+      .member-profile-label {
+        margin: 0 0 0.35rem;
+      }
+
+      .member-profile h1 {
+        color: #17324d;
+        font-size: clamp(1.75rem, 5vw, 2.75rem);
+        line-height: 1.15;
+        margin: 0;
+      }
+
+      .member-profile h1,
+      .member-bio,
+      .member-skill-list {
+        overflow-wrap: anywhere;
+      }
+
+      .member-profile h2 {
+        color: #17324d;
+        font-size: 1.2rem;
+      }
+
+      .member-bio {
+        border-top: 1px solid #dce3e9;
+        line-height: 1.7;
+        padding-top: 0.5rem;
+      }
+
+      .member-skills {
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 1.5rem;
+      }
+
+      .member-skill-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .member-skill-list li {
+        border-top: 1px solid #dce3e9;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: space-between;
+        padding: 0.85rem 0;
+      }
+
+      .member-skill-level {
+        color: #526575;
+        font-size: 0.9rem;
+      }
+
       @media (max-width: 40rem) {
+        .member-profile-header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .member-skills {
+          grid-template-columns: 1fr;
+        }
+
         .site-nav {
           align-items: flex-start;
           flex-direction: column;

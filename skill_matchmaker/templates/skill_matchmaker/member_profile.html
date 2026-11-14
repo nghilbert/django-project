@@ -1,0 +1,56 @@
+{% extends "skill_matchmaker/base.html" %}
+
+{% block title %}{{ member.get_full_name|default:member.email }} | Skill Matchmaker{% endblock %}
+
+{% block content %}
+    {% with member_name=member.get_full_name|default:member.email %}
+        <article class="member-profile" aria-labelledby="member-name">
+            <a class="post-detail-back" href="{% url 'home' %}">&larr; Back to posts</a>
+            <header class="member-profile-header">
+                {% if member.profile_picture %}
+                    <img class="member-avatar" src="{{ member.profile_picture.url }}" alt="Profile picture of {{ member_name }}" width="112" height="112">
+                {% else %}
+                    <div class="member-avatar member-avatar-placeholder" role="img" aria-label="No profile picture">
+                        {{ member_name|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+                <div>
+                    <p class="member-profile-label">Member profile</p>
+                    <h1 id="member-name">{{ member_name }}</h1>
+                </div>
+            </header>
+
+            <section class="member-bio" aria-labelledby="bio-heading">
+                <h2 id="bio-heading">About</h2>
+                {% if member.bio %}
+                    {{ member.bio|linebreaks }}
+                {% else %}
+                    <p class="member-empty">No bio yet.</p>
+                {% endif %}
+            </section>
+
+            <div class="member-skills">
+                <section aria-labelledby="offered-heading">
+                    <h2 id="offered-heading">Can teach</h2>
+                    <ul class="member-skill-list">
+                        {% for user_skill in member.skills.offered %}
+                            <li><span>{{ user_skill.skill.name }}</span><span class="member-skill-level">{{ user_skill.get_level_display }}</span></li>
+                        {% empty %}
+                            <li class="member-empty">No teaching skills added yet.</li>
+                        {% endfor %}
+                    </ul>
+                </section>
+                <section aria-labelledby="sought-heading">
+                    <h2 id="sought-heading">Wants to learn</h2>
+                    <ul class="member-skill-list">
+                        {% for user_skill in member.skills.sought %}
+                            <li><span>{{ user_skill.skill.name }}</span><span class="member-skill-level">{{ user_skill.get_level_display }}</span></li>
+                        {% empty %}
+                            <li class="member-empty">No learning skills added yet.</li>
+                        {% endfor %}
+                    </ul>
+                </section>
+            </div>
+        </article>
+    {% endwith %}
+{% endblock %}

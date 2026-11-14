@@ -13,7 +13,7 @@
         <header>
             <h1>{{ post.title }}</h1>
             <p class="post-detail-meta">
-                Posted by <strong>{{ post.author.get_full_name|default:post.author.email }}</strong>
+                Posted by <strong>{% include "skill_matchmaker/_member_link.html" with member=post.author only %}</strong>
                 <span aria-hidden="true">&middot;</span>
                 <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"F j, Y" }}</time>
             </p>
@@ -29,7 +29,7 @@
             {% for comment in post.comments.all %}
                 <article class="comment">
                     <p class="comment-meta">
-                        <strong>{{ comment.author.get_full_name|default:comment.author.email }}</strong>
+                        <strong>{% include "skill_matchmaker/_member_link.html" with member=comment.author only %}</strong>
                         <span aria-hidden="true">&middot;</span>
                         <time datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"F j, Y" }}</time>
                     </p>

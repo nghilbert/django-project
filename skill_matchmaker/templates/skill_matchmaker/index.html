@@ -8,7 +8,7 @@
         <article class="post-card">
             <h2><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
             <p class="post-meta">
-                By {{ post.author.get_full_name|default:post.author.email }}
+                By {% include "skill_matchmaker/_member_link.html" with member=post.author only %}
                 on <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"F j, Y" }}</time>
             </p>
             {% if post.content|wordcount > 50 %}
