@@ -12,6 +12,7 @@ from django.urls import resolve, reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
+from skill_matchmaker.account_links import ActivationLink
 from skill_matchmaker.models import User
 
 
@@ -27,16 +28,15 @@ class ActivationTests(TestCase):
 
     def test_send_activation_email(self):
         request = RequestFactory().get("/accounts/register/", secure=True)
-        self.user.send_activation_email(request)
+        ActivationLink(self.user).send(request)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, [self.user.email])
         link = urlsplit(mail.outbox[0].body.splitlines()[-1])
         self.assertEqual(link.scheme, "https")
         self.assertEqual(link.netloc, "testserver")
         match = resolve(link.path)
-        self.assertEqual(
-            User.from_activation_link(match.kwargs["uidb64"], match.kwargs["token"]), self.user
-        )
+        link = ActivationLink.from_url(match.kwargs["uidb64"], match.kwargs["token"])
+        self.assertEqual(link and link.user, self.user)
 
     def test_registration_emails_working_activation_link(self):
         response = self.client.post(
@@ -65,7 +65,8 @@ class ActivationTests(TestCase):
         self.assertEqual(int(self.client.session["_auth_user_id"]), user.pk)
 
     def test_valid_link_activates_without_logging_in(self):
-        self.assertEqual(User.from_activation_link(self.uid, self.token), self.user)
+        link = ActivationLink.from_url(self.uid, self.token)
+        self.assertEqual(link and link.user, self.user)
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse("login"))
         self.user.refresh_from_db()
@@ -74,7 +75,7 @@ class ActivationTests(TestCase):
 
     def test_used_link_is_rejected_before_first_login(self):
         self.client.get(self.url)
-        self.assertIsNone(User.from_activation_link(self.uid, self.token))
+        self.assertIsNone(ActivationLink.from_url(self.uid, self.token))
         response = self.client.get(self.url)
         self.assertContains(response, "invalid, expired, or already used")
         self.assertContains(response, reverse("resend_activation"))
@@ -83,10 +84,10 @@ class ActivationTests(TestCase):
         for value in [b"not-a-number", b"999999", b"9" * 100, b"\xff"]:
             with self.subTest(value=value):
                 uid = urlsafe_base64_encode(value)
-                self.assertIsNone(User.from_activation_link(uid, self.token))
+                self.assertIsNone(ActivationLink.from_url(uid, self.token))
                 response = self.client.get(reverse("activate", args=[uid, self.token]))
                 self.assertContains(response, "invalid, expired, or already used")
-        self.assertIsNone(User.from_activation_link("!", self.token))
+        self.assertIsNone(ActivationLink.from_url("!", self.token))
         self.user.refresh_from_db()
         self.assertFalse(self.user.is_active)
 
@@ -101,7 +102,7 @@ class ActivationTests(TestCase):
     def test_token_cannot_activate_another_user(self):
         other = User.objects.create_user(email="other@ilstu.edu", is_active=False)
         uid = urlsafe_base64_encode(force_bytes(other.pk))
-        self.assertIsNone(User.from_activation_link(uid, self.token))
+        self.assertIsNone(ActivationLink.from_url(uid, self.token))
 
     def test_expired_link_is_rejected(self):
         later = datetime.now() + timedelta(seconds=settings.PASSWORD_RESET_TIMEOUT + 1)
