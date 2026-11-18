@@ -39,8 +39,14 @@ class UserAdmin(BaseUserAdmin):
 
     @admin.action(description="Remove admin")
     def remove_admin(self, request, queryset):
-        # Skip yourself so you can't lock yourself out of /admin/
-        users = queryset.filter(admin__isnull=False).exclude(pk=request.user.pk)
+        if queryset.contains(request.user):
+            self.message_user(
+                request,
+                "You cannot remove admin from yourself. No users were changed.",
+                messages.WARNING,
+            )
+            return
+        users = queryset.filter(admin__isnull=False)
         for user in users:
             user.admin.demote()
         self.message_user(request, f"Removed admin from {len(users)} user(s).", messages.SUCCESS)
