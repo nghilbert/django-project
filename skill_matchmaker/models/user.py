@@ -23,9 +23,8 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email: str, password: str | None = None, **extra_fields):
-        extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
-        return self.create_user(email, password, **extra_fields)
+        return Admin.objects.create_user(email, password, **extra_fields)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -36,7 +35,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=150, blank=True)
     bio = models.TextField(blank=True)
     profile_picture = models.ImageField(upload_to="profile_pictures/", blank=True)
-    is_staff = models.BooleanField(default=False)  # Can log into /admin/
     is_active = models.BooleanField(default=True)  # Can log in
     date_joined = models.DateTimeField(default=timezone.now)
 
@@ -47,6 +45,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Keep Meta options from both parent classes
     class Meta(AbstractBaseUser.Meta, PermissionsMixin.Meta):
         pass
+
+    @property
+    def is_staff(self) -> bool:
+        # Django's /admin/ lets in only users whose is_staff is True
+        return hasattr(self, "admin")
 
     def clean(self):
         # Lowercase emails saved through forms
@@ -62,9 +65,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     def email_user(self, subject: str, message: str, from_email: str | None = None, **kwargs):
         return send_account_email(subject, message, self.email, from_email, **kwargs)
 
-    def delete(self, *args, **kwargs):
-        self.profile_picture.delete(save=False)
-        return super().delete(*args, **kwargs)
+    def delete(self, using=None, keep_parents=False):
+        # keep_parents=True deletes only a subclass row, so the user keeps their picture
+        if not keep_parents:
+            self.profile_picture.delete(save=False)
+        return super().delete(using=using, keep_parents=keep_parents)
 
     def send_activation_email(self, request):
         uid = urlsafe_base64_encode(force_bytes(self.pk))
@@ -115,3 +120,19 @@ class User(AbstractBaseUser, PermissionsMixin):
         if user is not None:
             user.email = data["email"]
         return user
+
+
+class Admin(User):
+    """A user who manages the site and can use /admin/."""
+
+    @classmethod
+    def promote(cls, user: User) -> Admin:
+        # Saving a subclass also saves its User row.
+        # Build it from the stored values to leave the user unchanged
+        row = User.objects.values().get(pk=user.pk)
+        admin = cls(user_ptr=user, **row)
+        admin.save()
+        return admin
+
+    def demote(self):
+        self.delete(keep_parents=True)
