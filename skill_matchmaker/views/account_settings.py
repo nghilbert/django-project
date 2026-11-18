@@ -5,6 +5,7 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import UpdateView
 
+from ..account_links import EmailChangeLink
 from ..forms.account_settings import AccountForm, EmailChangeForm
 from ..models import User
 
@@ -38,7 +39,7 @@ class EmailChangeView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         # Don't call super().form_valid(), which would save the email before it's confirmed
-        if not self.object.send_email_change_link(self.request, form.instance.email):
+        if not EmailChangeLink(self.object, form.instance.email).send(self.request):
             form.add_error(
                 None,
                 "We couldn't send the confirmation email. Your email address hasn't changed. "
@@ -50,9 +51,9 @@ class EmailChangeView(LoginRequiredMixin, UpdateView):
 
 class ConfirmEmailChangeView(View):
     def get(self, request, token):
-        user = User.from_email_change_link(token)
-        if user is None:
+        link = EmailChangeLink.from_url(token)
+        if link is None:
             return render(request, "skill_matchmaker/email_change_invalid.html")
 
-        user.save(update_fields=["email"])
+        link.confirm()
         return redirect("account_settings")

@@ -1,11 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-from django.contrib.auth.tokens import default_token_generator
-from django.core import signing
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from ..email import send_account_email
 
@@ -62,6 +58,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_absolute_url(self):
         return reverse("member_profile", args=[self.pk])
 
+    def activate(self):
+        self.is_active = True
+        self.save(update_fields=["is_active"])
+
+    def change_email(self, email: str):
+        self.email = email
+        self.save(update_fields=["email"])
+
     def email_user(self, subject: str, message: str, from_email: str | None = None, **kwargs):
         return send_account_email(subject, message, self.email, from_email, **kwargs)
 
@@ -70,56 +74,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         if not keep_parents:
             self.profile_picture.delete(save=False)
         return super().delete(using=using, keep_parents=keep_parents)
-
-    def send_activation_email(self, request):
-        uid = urlsafe_base64_encode(force_bytes(self.pk))
-        token = default_token_generator.make_token(self)
-        link = request.build_absolute_uri(reverse("activate", args=[uid, token]))
-        return self.email_user(
-            "Verify your Skill Matchmaker account",
-            f"Click this link to verify your account:\n\n{link}",
-        )
-
-    @classmethod
-    def from_activation_link(cls, uidb64, token):
-        try:
-            user_id = urlsafe_base64_decode(uidb64).decode()
-            user = cls.objects.get(pk=user_id)
-        except ValueError, TypeError, OverflowError, cls.DoesNotExist:
-            return None
-
-        # Activating an account doesn't invalidate Django's password-reset token.
-        if user.is_active or not default_token_generator.check_token(user, token):
-            return None
-        return user
-
-    def send_email_change_link(self, request, new_email: str):
-        # Signing the new email in the token means it can't be edited without breaking the link
-        token = signing.dumps({"user": self.pk, "email": new_email}, salt="change-email")
-        link = request.build_absolute_uri(reverse("confirm_email_change", args=[token]))
-        # Sent to the new address, not self.email, to prove the user owns it
-        return send_account_email(
-            "Confirm your new Skill Matchmaker email",
-            f"Click this link to confirm your new email:\n\n{link}",
-            new_email,
-        )
-
-    @classmethod
-    def from_email_change_link(cls, token):
-        try:
-            # Expires after 3 days, like the sign-up link
-            data = signing.loads(token, salt="change-email", max_age=60 * 60 * 24 * 3)
-        except signing.BadSignature:
-            return None
-
-        # Someone may have signed up with it since, or the link was already used
-        if cls.objects.filter(email=data["email"]).exists():
-            return None
-
-        user = cls.objects.filter(pk=data["user"]).first()
-        if user is not None:
-            user.email = data["email"]
-        return user
 
 
 class Admin(User):

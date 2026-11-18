@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView
 
+from ..account_links import ActivationLink
 from ..forms.accounts import DeleteAccountForm, RegistrationForm
 
 
@@ -15,7 +16,7 @@ class RegisterView(CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        if not self.object.send_activation_email(self.request):
+        if not ActivationLink(form.instance).send(self.request):
             messages.error(
                 self.request,
                 "Your account was created, but we couldn't send the verification email. "
