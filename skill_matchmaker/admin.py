@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import Admin, Comment, Post, Reaction, Skill, User, UserSkill
+from .models import Admin, Comment, Connection, Post, Reaction, Skill, User, UserSkill
 
 
 @admin.register(User)
@@ -69,6 +69,13 @@ class ReactionAdmin(admin.ModelAdmin):
     list_display = ["emoji", "user", "post", "created_at"]
     list_filter = ["emoji"]
     search_fields = ["user__email", "post__title"]
+
+
+@admin.register(Connection)
+class ConnectionAdmin(admin.ModelAdmin):
+    list_display = ["from_user", "to_user", "status", "created_at"]
+    list_filter = ["status"]
+    search_fields = ["from_user__email", "to_user__email"]
 
 
 @admin.register(Skill)
