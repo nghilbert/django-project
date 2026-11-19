@@ -20,7 +20,7 @@ class UserSkillForm(forms.ModelForm):
         skill = cleaned_data.get("skill")
         skill_type = cleaned_data.get("skill_type")
 
-        if UserSkill.objects.filter(user=self.user, skill=skill, skill_type=skill_type).exists():
+        if self.user.skills.filter(skill=skill, skill_type=skill_type).exists():
             self.add_error("skill", "You already added this skill.")
 
         return cleaned_data
