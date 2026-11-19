@@ -1,7 +1,18 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import Admin, Comment, Connection, Post, Reaction, Skill, User, UserSkill
+from .models import (
+    Admin,
+    CampusLocation,
+    Comment,
+    Connection,
+    Event,
+    Post,
+    Reaction,
+    Skill,
+    User,
+    UserSkill,
+)
 
 
 @admin.register(User)
@@ -56,6 +67,20 @@ class UserAdmin(BaseUserAdmin):
 class PostAdmin(admin.ModelAdmin):
     list_display = ["title", "author", "created_at"]
     search_fields = ["title", "content", "author__email"]
+
+
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    list_display = ["title", "author", "skill", "starts_at", "location", "meeting_link"]
+    list_filter = ["skill", "location"]
+    search_fields = ["title", "content", "author__email", "skill__name"]
+
+
+@admin.register(CampusLocation)
+class CampusLocationAdmin(admin.ModelAdmin):
+    list_display = ["building", "room"]
+    list_filter = ["building"]
+    search_fields = ["building", "room"]
 
 
 @admin.register(Comment)
