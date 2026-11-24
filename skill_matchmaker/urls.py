@@ -17,7 +17,7 @@ from .views import (
 )
 from .views.accounts import DeleteAccountView, RegisterView
 from .views.activation import ActivateView, ResendActivationView
-from .views.connections import ConnectView
+from .views.connections import AcceptConnectionView, ConnectionsView, ConnectView
 from .views.home import HomeView
 from .views.members import MemberProfileView
 from .views.posts import PostCreateView, PostDeleteView, PostDetailView, PostUpdateView
@@ -27,6 +27,8 @@ urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path("members/<int:pk>/", MemberProfileView.as_view(), name="member_profile"),
     path("members/<int:pk>/connect/", ConnectView.as_view(), name="connect"),
+    path("connections/", ConnectionsView.as_view(), name="connections"),
+    path("connections/<int:pk>/accept/", AcceptConnectionView.as_view(), name="accept_connection"),
     path("posts/new/", PostCreateView.as_view(), name="create_post"),
     path("posts/<int:pk>/", PostDetailView.as_view(), name="post_detail"),
     path("posts/<int:pk>/delete/", PostDeleteView.as_view(), name="delete_post"),
