@@ -1,0 +1,28 @@
+{% extends "skill_matchmaker/base.html" %}
+
+{% block title %}Connections | Skill Matchmaker{% endblock %}
+
+{% block content %}
+    <h1>Connections</h1>
+
+    <h2>Requests</h2>
+    {% for connection in requests %}
+        <p>
+            {% include "skill_matchmaker/_member_link.html" with member=connection.from_user only %}
+            wants to connect.
+        </p>
+        <form method="post" action="{% url 'accept_connection' connection.pk %}">
+            {% csrf_token %}
+            <button type="submit">Accept</button>
+        </form>
+    {% empty %}
+        <p>No pending requests.</p>
+    {% endfor %}
+
+    <h2>Your connections</h2>
+    {% for member in connected_users %}
+        <p>{% include "skill_matchmaker/_member_link.html" with member=member only %}</p>
+    {% empty %}
+        <p>No connections yet.</p>
+    {% endfor %}
+{% endblock %}

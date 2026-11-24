@@ -266,3 +266,134 @@ class ProfileConnectionStatusTests(ConnectionTestCase):
     def test_button_post_flow_updates_profile(self):
         response = self.client.post(reverse("connect", args=[self.bob.pk]), follow=True)
         self.assertOnlyState(response, self.REQUEST_SENT)
+
+
+class ConnectionsViewTests(ConnectionTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(self.alice)
+        self.url = reverse("connections")
+
+    def get_page(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        return response
+
+    def test_anonymous_redirects_to_login(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        self.assertRedirects(
+            response, f"{reverse('login')}?next={self.url}", fetch_redirect_response=False
+        )
+
+    def test_uses_template(self):
+        self.assertTemplateUsed(self.get_page(), "skill_matchmaker/connections.html")
+
+    def test_nav_links_to_page(self):
+        response = self.client.get(reverse("home"))
+        self.assertContains(response, f'href="{self.url}"')
+
+    def test_empty_states(self):
+        response = self.get_page()
+        self.assertContains(response, "No pending requests.")
+        self.assertContains(response, "No connections yet.")
+
+    def test_lists_only_pending_requests_sent_to_you(self):
+        received = Connection.objects.create(from_user=self.bob, to_user=self.alice)
+        Connection.objects.create(from_user=self.alice, to_user=self.carol)  # Sent by you
+        Connection.objects.create(from_user=self.bob, to_user=self.carol)  # Not involving you
+        response = self.get_page()
+        self.assertEqual(list(response.context["requests"]), [received])
+        accept_url = reverse("accept_connection", args=[received.pk])
+        self.assertContains(response, f'action="{accept_url}"')
+        self.assertContains(response, '<button type="submit">Accept</button>', count=1, html=True)
+
+    def test_accepted_requests_are_not_listed_as_requests(self):
+        Connection.objects.create(
+            from_user=self.bob, to_user=self.alice, status=Connection.Status.ACCEPTED
+        )
+        response = self.get_page()
+        self.assertEqual(list(response.context["requests"]), [])
+        self.assertNotContains(response, '<button type="submit">Accept</button>', html=True)
+
+    def test_lists_connections_in_both_directions(self):
+        Connection.objects.create(
+            from_user=self.alice, to_user=self.bob, status=Connection.Status.ACCEPTED
+        )
+        Connection.objects.create(
+            from_user=self.carol, to_user=self.alice, status=Connection.Status.ACCEPTED
+        )
+        response = self.get_page()
+        self.assertCountEqual(response.context["connected_users"], [self.bob, self.carol])
+        self.assertContains(response, f'href="{self.bob.get_absolute_url()}"')
+        self.assertContains(response, f'href="{self.carol.get_absolute_url()}"')
+
+    def test_pending_and_other_pairs_are_not_connections(self):
+        Connection.objects.create(from_user=self.alice, to_user=self.bob)
+        Connection.objects.create(
+            from_user=self.bob, to_user=self.carol, status=Connection.Status.ACCEPTED
+        )
+        response = self.get_page()
+        self.assertEqual(response.context["connected_users"], [])
+
+
+class AcceptConnectionViewTests(ConnectionTestCase):
+    def setUp(self):
+        super().setUp()
+        self.pending_request = Connection.objects.create(from_user=self.bob, to_user=self.alice)
+        self.url = reverse("accept_connection", args=[self.pending_request.pk])
+        self.client.force_login(self.alice)
+
+    def assertStillPending(self):
+        self.pending_request.refresh_from_db()
+        self.assertEqual(self.pending_request.status, Connection.Status.PENDING)
+
+    def test_anonymous_post_redirects_to_login(self):
+        self.client.logout()
+        response = self.client.post(self.url)
+        self.assertRedirects(
+            response, f"{reverse('login')}?next={self.url}", fetch_redirect_response=False
+        )
+        self.assertStillPending()
+
+    def test_get_not_allowed(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+        self.assertStillPending()
+
+    def test_post_accepts_and_redirects(self):
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse("connections"))
+        self.pending_request.refresh_from_db()
+        self.assertEqual(self.pending_request.status, Connection.Status.ACCEPTED)
+
+    def test_sender_cannot_accept_own_request(self):
+        self.client.force_login(self.bob)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 404)
+        self.assertStillPending()
+
+    def test_unrelated_user_cannot_accept(self):
+        self.client.force_login(self.carol)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 404)
+        self.assertStillPending()
+
+    def test_already_accepted_returns_404(self):
+        self.pending_request.accept()
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_nonexistent_request_returns_404(self):
+        missing_pk = Connection.objects.order_by("-pk").first().pk + 1  # type: ignore
+        response = self.client.post(reverse("accept_connection", args=[missing_pk]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_accepting_shows_connection_for_both_users(self):
+        response = self.client.post(self.url, follow=True)
+        self.assertEqual(list(response.context["requests"]), [])
+        self.assertEqual(response.context["connected_users"], [self.bob])
+
+        self.client.force_login(self.bob)
+        response = self.client.get(reverse("connections"))
+        self.assertEqual(response.context["connected_users"], [self.alice])
