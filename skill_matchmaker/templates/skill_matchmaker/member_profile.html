@@ -18,6 +18,22 @@
                     <p class="member-profile-label">Member profile</p>
                     <h1 id="member-name">{{ member_name }}</h1>
                 </div>
+                {% if member != user %}
+                    <div class="member-connect">
+                        {% if not connection %}
+                            <form method="post" action="{% url 'connect' member.pk %}">
+                                {% csrf_token %}
+                                <button type="submit">Connect</button>
+                            </form>
+                        {% elif connection.status == "accepted" %}
+                            <p>Connected</p>
+                        {% elif connection.from_user == user %}
+                            <p>Request sent</p>
+                        {% else %}
+                            <p>Sent you a request</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
             </header>
 
             <section class="member-bio" aria-labelledby="bio-heading">
